@@ -25,6 +25,27 @@ I built this project to better understand how partner API onboarding programs ar
 
 ## Architecture
 
+The partner lifecycle is separated into four boundaries:
+
+- `domain/` contains dependency-free lifecycle rules and domain events.
+- `application/` coordinates use cases through application-owned ports.
+- `infrastructure/` implements those ports for PostgreSQL, audit storage, and
+  the event outbox.
+- `interfaces/` and `routes/` adapt HTTP requests and responses.
+
+Runtime dependencies are assembled in `composition/partnerApplication.js`.
+See [docs/domain-rules.md](docs/domain-rules.md) for the current rule catalogue
+and proposed rules that still need product confirmation.
+
+The enforced onboarding progression is:
+
+```text
+Connectivity COMPLETED
+        -> Testing PASSED with consistent successful results
+        -> Certification CERTIFIED with approver and products
+        -> Go-live READY with all approvals and rollback readiness
+```
+
 ```text
 Client / Partner Ops
         |

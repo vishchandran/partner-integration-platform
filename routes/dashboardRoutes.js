@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const partnerService = require("../services/partnerService");
+const partnerService = require("../composition/partnerApplication");
 
 router.get("/", async (req, res) => {
 

@@ -160,3 +160,23 @@ test("retryPendingEvents moves exhausted outbox events to the DLQ", async () => 
   assert.equal(deadLetters[0].source, "OUTBOX");
   assert.equal(marked.at(-1).status, "DEAD_LETTERED");
 });
+
+test("dispatchPersistedEvent delivers without writing a second outbox record", async () => {
+  const { publisher, savedEvents, savedOutbox, published, marked } =
+    loadPublisher();
+  const event = {
+    eventId: "EVT-persisted",
+    eventType: "PARTNER_CERTIFIED",
+    payload: { partnerId: "P-1" }
+  };
+
+  await publisher.dispatchPersistedEvent(event);
+
+  assert.equal(savedEvents.length, 0);
+  assert.equal(savedOutbox.length, 0);
+  assert.deepEqual(published[0].event, event);
+  assert.deepEqual(marked, [{
+    eventId: "EVT-persisted",
+    status: "PUBLISHED"
+  }]);
+});

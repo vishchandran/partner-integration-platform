@@ -1,9 +1,4 @@
-const allowedPartnerStatuses = [
-  "REQUESTED",
-  "APPROVED",
-  "REJECTED",
-  "SUSPENDED"
-];
+const { PARTNER_STATUSES } = require("../domain/partner/partnerStatuses");
 
 const validateRequiredString = (body, field, errors) => {
   if (
@@ -55,9 +50,9 @@ const validatePartnerRequest = (body) => {
 const validatePartnerStatusRequest = (body) => {
   const errors = [];
 
-  if (!allowedPartnerStatuses.includes(body.status)) {
+  if (!PARTNER_STATUSES.includes(body.status)) {
     errors.push(
-      `status must be one of: ${allowedPartnerStatuses.join(", ")}`
+      `status must be one of: ${PARTNER_STATUSES.join(", ")}`
     );
   }
 
@@ -115,25 +110,11 @@ const validateGoLiveRequest = (body) => {
   return errors;
 };
 
-const rejectInvalid = (res, errors) => {
-  if (errors.length === 0) {
-    return false;
-  }
-
-  res.status(400).json({
-    message: "Validation failed",
-    errors
-  });
-
-  return true;
-};
-
 module.exports = {
   validatePartnerRequest,
   validatePartnerStatusRequest,
   validateConnectivityRequest,
   validateTestingRequest,
   validateCertificationRequest,
-  validateGoLiveRequest,
-  rejectInvalid
+  validateGoLiveRequest
 };

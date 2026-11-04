@@ -47,6 +47,17 @@ const publishEvent = async (eventType, payload) => {
   return event;
 };
 
+const dispatchPersistedEvent = async (event) => {
+  try {
+    await deliverEvent(event);
+  } catch (error) {
+    console.error(
+      "Failed to publish persisted event to Kafka",
+      error.message
+    );
+  }
+};
+
 const retryPendingEvents = async () => {
   const pendingEvents = await outboxRepository.getPendingEvents();
   const results = [];
@@ -97,6 +108,7 @@ const getEvents = async() => {
 
 module.exports = {
   publishEvent,
+  dispatchPersistedEvent,
   retryPendingEvents,
   getEvents
 };
