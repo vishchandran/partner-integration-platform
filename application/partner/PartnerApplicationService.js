@@ -1,10 +1,10 @@
 const lifecycle = require("../../domain/partner/partnerLifecycle");
 
 class PartnerApplicationService {
-  constructor({ partnerRepository, auditRepository, eventPublisher }) {
+  constructor({ partnerRepository, auditRepository, eventDispatcher }) {
     this.partnerRepository = partnerRepository;
     this.auditRepository = auditRepository;
-    this.eventPublisher = eventPublisher;
+    this.eventDispatcher = eventDispatcher;
   }
 
   async createPartner(request) {
@@ -46,7 +46,7 @@ class PartnerApplicationService {
       partnerId,
       request,
       decide: lifecycle.recordConnectivity,
-      save: (value) => this.partnerRepository.saveConnectivity(partnerId, value),
+      stage: "CONNECTIVITY",
       auditAction: "CONNECTIVITY_UPDATED",
       responseKey: "connectivity"
     });
@@ -57,7 +57,7 @@ class PartnerApplicationService {
       partnerId,
       request,
       decide: lifecycle.recordTesting,
-      save: (value) => this.partnerRepository.saveTesting(partnerId, value),
+      stage: "TESTING",
       auditAction: "TESTING_UPDATED",
       responseKey: "testing"
     });
@@ -68,7 +68,7 @@ class PartnerApplicationService {
       partnerId,
       request,
       decide: (value) => lifecycle.recordCertification(partnerId, value),
-      save: (value) => this.partnerRepository.saveCertification(partnerId, value),
+      stage: "CERTIFICATION",
       auditAction: "CERTIFICATION_UPDATED",
       responseKey: "certification"
     });
@@ -79,16 +79,9 @@ class PartnerApplicationService {
       partnerId,
       request,
       decide: (value) => lifecycle.recordGoLive(partnerId, value),
-      save: (value) => this.partnerRepository.saveGoLive(partnerId, value),
+      stage: "GO_LIVE",
       auditAction: "GO_LIVE_UPDATED",
-      responseKey: "goLive",
-      mapEvents: (events, saved) => events.map((event) => ({
-        ...event,
-        payload: {
-          ...event.payload,
-          productionDate: saved.production_date
-        }
-      }))
+      responseKey: "goLive"
     });
   }
 
@@ -96,10 +89,9 @@ class PartnerApplicationService {
     partnerId,
     request,
     decide,
-    save,
+    stage,
     auditAction,
-    responseKey,
-    mapEvents = (events) => events
+    responseKey
   }) {
     const partner = await this.partnerRepository.findById(partnerId);
 
@@ -108,17 +100,22 @@ class PartnerApplicationService {
     }
 
     const decision = decide(request);
-    const saved = await save(decision.value);
+    const transaction = await this.partnerRepository.saveLifecycleStage({
+      partnerId,
+      stage,
+      value: decision.value,
+      events: decision.events
+    });
 
     this.auditRepository.append(partnerId, auditAction, request);
 
-    for (const event of mapEvents(decision.events, saved)) {
-      await this.eventPublisher.publish(event.eventType, event.payload);
+    for (const event of transaction.events) {
+      await this.eventDispatcher.dispatch(event);
     }
 
     return {
       partnerId,
-      [responseKey]: saved
+      [responseKey]: transaction.state
     };
   }
 

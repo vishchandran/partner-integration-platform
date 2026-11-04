@@ -37,6 +37,6 @@ before they are enforced.
 
 - **Current:** domain code decides which events occurred; it does not publish to
   Kafka or write to PostgreSQL.
-- **Proposed:** saving lifecycle state, appending history, and storing domain
-  events in the outbox should share one database transaction. Kafka delivery
-  should happen asynchronously after that transaction commits.
+- **Current:** saving lifecycle state, appending history, and storing domain
+  events in the outbox share one database transaction. Kafka delivery happens
+  after that transaction commits.

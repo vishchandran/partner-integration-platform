@@ -5,16 +5,24 @@ const PartnerApplicationService = require("../application/partner/PartnerApplica
 const buildService = ({ partner, savedCertification } = {}) => {
   const published = [];
   const audits = [];
+  const persistedEvent = {
+    eventId: "EVT-1",
+    eventType: "PARTNER_CERTIFIED",
+    payload: { partnerId: "P-1" }
+  };
   const service = new PartnerApplicationService({
     partnerRepository: {
       findById: async () => partner,
-      saveCertification: async () => savedCertification
+      saveLifecycleStage: async ({ events }) => ({
+        state: savedCertification,
+        events: events.length > 0 ? [persistedEvent] : []
+      })
     },
     auditRepository: {
       append: (...args) => audits.push(args)
     },
-    eventPublisher: {
-      publish: async (...args) => published.push(args)
+    eventDispatcher: {
+      dispatch: async (...args) => published.push(args)
     }
   });
 
@@ -31,6 +39,28 @@ test("application service does not publish certification event for in-review upd
 
   assert.deepEqual(published, []);
   assert.equal(audits.length, 1);
+});
+
+test("application dispatches a certified event after repository persistence", async () => {
+  const order = [];
+  const service = new PartnerApplicationService({
+    partnerRepository: {
+      findById: async () => ({ partner_id: "P-1" }),
+      saveLifecycleStage: async () => {
+        order.push("committed");
+        return {
+          state: { status: "CERTIFIED" },
+          events: [{ eventId: "EVT-1" }]
+        };
+      }
+    },
+    auditRepository: { append: () => order.push("audited") },
+    eventDispatcher: { dispatch: async () => order.push("dispatched") }
+  });
+
+  await service.updateCertificationStatus("P-1", { status: "CERTIFIED" });
+
+  assert.deepEqual(order, ["committed", "audited", "dispatched"]);
 });
 
 test("application service returns null for an unknown partner", async () => {
