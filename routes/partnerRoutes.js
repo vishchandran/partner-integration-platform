@@ -1,12 +1,13 @@
 const express = require("express");
-const partnerService = require("../services/partnerService");
+const partnerService = require("../composition/partnerApplication");
 const validators = require("../validators/partnerValidators");
+const rejectInvalid = require("../interfaces/http/rejectInvalid");
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validatePartnerRequest(req.body)
     )
@@ -39,7 +40,7 @@ router.get("/status/:status", async (req, res) => {
 
 router.patch("/:partnerId/status", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validatePartnerStatusRequest(req.body)
     )
@@ -63,7 +64,7 @@ router.patch("/:partnerId/status", async (req, res) => {
 
 router.patch("/:partnerId/connectivity", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validateConnectivityRequest(req.body)
     )
@@ -87,7 +88,7 @@ router.patch("/:partnerId/connectivity", async (req, res) => {
 
 router.patch("/:partnerId/testing", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validateTestingRequest(req.body)
     )
@@ -117,7 +118,7 @@ router.patch("/:partnerId/testing", async (req, res) => {
 
 router.patch("/:partnerId/certification", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validateCertificationRequest(req.body)
     )
@@ -147,7 +148,7 @@ router.patch("/:partnerId/certification", async (req, res) => {
 
 router.patch("/:partnerId/go-live", async (req, res) => {
   if (
-    validators.rejectInvalid(
+    rejectInvalid(
       res,
       validators.validateGoLiveRequest(req.body)
     )
