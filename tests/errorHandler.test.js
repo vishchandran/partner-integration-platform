@@ -6,7 +6,7 @@ require.cache[loggerPath] = {
   id: loggerPath,
   filename: loggerPath,
   loaded: true,
-  exports: { error: () => {} }
+  exports: { error: () => {}, warn: () => {} }
 };
 const errorHandler = require("../interfaces/http/errorHandler");
 
