@@ -24,13 +24,13 @@ before they are enforced.
   `CERTIFIED`.
 - **Current:** `PARTNER_READY_FOR_GO_LIVE` is raised only when go-live status is
   `READY`.
-- **Proposed:** testing cannot start until connectivity is complete.
-- **Proposed:** certification cannot complete until testing has passed.
-- **Proposed:** a `PASSED` testing result should have no failed or blocked cases,
-  and its counts should add up to the total number of test cases.
-- **Proposed:** certification should identify an approver and at least one
+- **Current:** testing cannot be recorded until connectivity is complete.
+- **Current:** certification cannot complete until testing has passed.
+- **Current:** a `PASSED` testing result has no failed or blocked cases,
+  and its counts add up to the total number of test cases.
+- **Current:** certification identifies an approver and at least one
   certified product.
-- **Proposed:** go-live readiness requires certification, business, technology,
+- **Current:** go-live readiness requires certification, business, technology,
   and operations approval, plus a ready rollback plan.
 
 ## Consistency and events

@@ -13,6 +13,7 @@ const buildService = ({ partner, savedCertification } = {}) => {
   const service = new PartnerApplicationService({
     partnerRepository: {
       findById: async () => partner,
+      getLifecycle: async () => ({ testing_status: "PASSED" }),
       saveLifecycleStage: async ({ events }) => ({
         state: savedCertification,
         events: events.length > 0 ? [persistedEvent] : []
@@ -46,6 +47,7 @@ test("application dispatches a certified event after repository persistence", as
   const service = new PartnerApplicationService({
     partnerRepository: {
       findById: async () => ({ partner_id: "P-1" }),
+      getLifecycle: async () => ({ testing_status: "PASSED" }),
       saveLifecycleStage: async () => {
         order.push("committed");
         return {
@@ -58,7 +60,11 @@ test("application dispatches a certified event after repository persistence", as
     eventDispatcher: { dispatch: async () => order.push("dispatched") }
   });
 
-  await service.updateCertificationStatus("P-1", { status: "CERTIFIED" });
+  await service.updateCertificationStatus("P-1", {
+    status: "CERTIFIED",
+    approver: "Reviewer",
+    certifiedProducts: ["PAYMENTS"]
+  });
 
   assert.deepEqual(order, ["committed", "audited", "dispatched"]);
 });
@@ -74,4 +80,27 @@ test("application service returns null for an unknown partner", async () => {
   assert.equal(result, null);
   assert.deepEqual(published, []);
   assert.deepEqual(audits, []);
+});
+
+test("application rejects an unmet prerequisite before persistence", async () => {
+  let persisted = false;
+  const service = new PartnerApplicationService({
+    partnerRepository: {
+      findById: async () => ({ partner_id: "P-1" }),
+      getLifecycle: async () => ({ connectivity_status: "PENDING" }),
+      saveLifecycleStage: async () => {
+        persisted = true;
+      }
+    },
+    auditRepository: { append: () => {} },
+    eventDispatcher: { dispatch: async () => {} }
+  });
+
+  await assert.rejects(
+    service.updateTestingStatus("P-1", {
+      status: "IN_PROGRESS"
+    }),
+    /Connectivity must be completed before testing/
+  );
+  assert.equal(persisted, false);
 });

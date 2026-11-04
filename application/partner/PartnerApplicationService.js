@@ -67,7 +67,8 @@ class PartnerApplicationService {
     return this.updateLifecycleStage({
       partnerId,
       request,
-      decide: (value) => lifecycle.recordCertification(partnerId, value),
+      decide: (value, current) =>
+        lifecycle.recordCertification(partnerId, value, current),
       stage: "CERTIFICATION",
       auditAction: "CERTIFICATION_UPDATED",
       responseKey: "certification"
@@ -78,7 +79,8 @@ class PartnerApplicationService {
     return this.updateLifecycleStage({
       partnerId,
       request,
-      decide: (value) => lifecycle.recordGoLive(partnerId, value),
+      decide: (value, current) =>
+        lifecycle.recordGoLive(partnerId, value, current),
       stage: "GO_LIVE",
       auditAction: "GO_LIVE_UPDATED",
       responseKey: "goLive"
@@ -99,7 +101,8 @@ class PartnerApplicationService {
       return null;
     }
 
-    const decision = decide(request);
+    const currentLifecycle = await this.partnerRepository.getLifecycle(partnerId);
+    const decision = decide(request, currentLifecycle);
     const transaction = await this.partnerRepository.saveLifecycleStage({
       partnerId,
       stage,

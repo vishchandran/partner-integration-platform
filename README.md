@@ -37,6 +37,15 @@ Runtime dependencies are assembled in `composition/partnerApplication.js`.
 See [docs/domain-rules.md](docs/domain-rules.md) for the current rule catalogue
 and proposed rules that still need product confirmation.
 
+The enforced onboarding progression is:
+
+```text
+Connectivity COMPLETED
+        -> Testing PASSED with consistent successful results
+        -> Certification CERTIFIED with approver and products
+        -> Go-live READY with all approvals and rollback readiness
+```
+
 ```text
 Client / Partner Ops
         |

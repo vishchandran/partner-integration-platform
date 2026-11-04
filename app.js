@@ -9,6 +9,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const kafkaConsumer = require("./kafka/kafkaConsumer");
+const errorHandler = require("./interfaces/http/errorHandler");
 
 
 
@@ -50,19 +51,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use((err, req, res, next) => {
-  logger.error(
-    {
-      err,
-      path: req.path
-    },
-    "Unhandled request error"
-  );
-
-  res.status(500).json({
-    message: "Internal server error"
-  });
-});
+app.use(errorHandler);
 
 /*
 |--------------------------------------------------------------------------
